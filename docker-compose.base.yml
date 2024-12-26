@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  connections-db:
+    image: neo4j
+    container_name: connections-db
+    environment:
+      - NEO4J_AUTH=neo4j/9009001537  # Set your username and password
+    ports:
+      - "7474:7474"  # HTTP port
+      - "7687:7687"  # Bolt port
+    volumes:
+      - connections-db-data:/data  # Persist data
+    networks:
+      - connektify-network
+
+  discovery-server:
+    image: abhishek603/connektify/discovery-server
+    container_name: discovery-server
+    networks:
+      - connektify-network
+    ports:
+      - "8761:8761"
+
+  connections-service:
+    image: abhishek603/connektify/connections-service
+    container_name: connections-service
+    networks:
+      - connektify-network
+    depends_on:
+      - discovery-server
+      - connections-db
+
+  api-gateway:
+    image: abhishek603/connektify/api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    networks:
+      - connektify-network
+    depends_on:
+      - discovery-server
+
+networks:
+  connektify-network:
+
+volumes:
+  connections-db-data:
